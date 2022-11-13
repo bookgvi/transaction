@@ -1,21 +1,19 @@
 package com.example.transaction.controller;
 
 import com.example.transaction.domain.Account;
-import com.example.transaction.dto.sbp_alfa.SbpRegisterRequest;
+import com.example.transaction.domain.SbpRegisterResponse;
 import com.example.transaction.dto.TransferDTO;
-import com.example.transaction.dto.sbp_alfa.SbpRegisterResponse;
+import com.example.transaction.dto.sbp_alfa.SbpRegisterRequest;
 import com.example.transaction.service.AccountService;
 import com.example.transaction.service.RestClient;
+import com.example.transaction.service.SbpResponseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 @Controller
@@ -25,10 +23,12 @@ public class AccountController {
     private final Logger logger = Logger.getLogger(AccountController.class.getName());
     private final AccountService accountService;
     private final RestClient restClient;
+    private final SbpResponseService sbpResponseService;
 
-    public AccountController(AccountService accountService, RestClient restClient) {
+    public AccountController(AccountService accountService, RestClient restClient, SbpResponseService sbpResponseService) {
         this.accountService = accountService;
         this.restClient = restClient;
+        this.sbpResponseService = sbpResponseService;
     }
 
     @GetMapping
@@ -51,10 +51,7 @@ public class AccountController {
 
     @PostMapping("/register")
     public SbpRegisterResponse registerInSbp() throws JsonProcessingException {
-        String paymentNum = UUID.randomUUID().toString();
-        BigDecimal amount = BigDecimal.valueOf(12300);
-        SbpRegisterRequest sbpRegisterDTO = new SbpRegisterRequest(paymentNum, amount);
-        ObjectMapper mapper = new ObjectMapper();
+        SbpRegisterRequest sbpRegisterDTO = sbpResponseService.prepareRegisterRequest();
         String responseString = restClient.register(
                 sbpRegisterDTO.getOrderNumber(),
                 sbpRegisterDTO.getAmount(),
@@ -63,6 +60,6 @@ public class AccountController {
                 sbpRegisterDTO.getPassword()
         );
         logger.info(responseString);
-        return mapper.readValue(responseString, SbpRegisterResponse.class);
+        return sbpResponseService.saveRegisterResponse(responseString, sbpRegisterDTO);
     }
 }
