@@ -7,31 +7,21 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends CrudRepository<Account, Long> {
-    List<Account> findAll();
-
-    @Query(value = "select * " +
-            "from account acc " +
-            "where 1 = 1 " +
-            "and acc.id = :id", nativeQuery = true)
-    Account findAccountById(long id);
-
-    @Query(value = "SELECT * FROM account", nativeQuery = true)
-    List<Object> myFindAll();
+    Iterable<Account> findAll();
 
     @Query(value = "select * from account acc " +
             "where 1 = 1 " +
             "and acc.id = :id", nativeQuery = true)
-    Account getById(long id);
+    Optional<Account> getById(long id);
 
     @Modifying
     @Query(value = "update account acc set acc.amount_amt = :amount " +
             "where 1 = 1 " +
             "and acc.id = :id", nativeQuery = true)
     void changeAmount(long id, BigDecimal amount);
-
 
 }

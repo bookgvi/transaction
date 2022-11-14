@@ -13,7 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.security.auth.login.AccountNotFoundException;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Controller
@@ -32,20 +33,20 @@ public class AccountController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Account>> getAccounts() {
-        List<Account> accounts = accountService.getAllRecords();
+    public ResponseEntity<Iterable<Account>> getAccounts() {
+        Iterable<Account> accounts = accountService.getAllRecords();
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(accounts);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Account> getAccountById(@PathVariable long id) {
-        Account acc = accountService.getById(id);
+    public ResponseEntity<Optional<Account>> getAccountById(@PathVariable long id) {
+        Optional<Account> acc = accountService.getById(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(acc);
     }
 
     @PostMapping("/transfer")
-    public ResponseEntity<List<Account>> transferMoney(@RequestBody TransferDTO transfer) {
-        List<Account> accounts = accountService.transferMoney(transfer);
+    public ResponseEntity<Iterable<Account>> transferMoney(@RequestBody TransferDTO transfer) throws AccountNotFoundException {
+        Iterable<Account> accounts = accountService.transferMoney(transfer);
         return ResponseEntity.status(HttpStatus.CREATED).body(accounts);
     }
 
@@ -61,5 +62,10 @@ public class AccountController {
         );
         logger.info(responseString);
         return sbpResponseService.saveRegisterResponse(responseString, sbpRegisterDTO);
+    }
+
+    @PostMapping("/add")
+    public Account addAccount(@RequestBody Account account) {
+        return accountService.save(account);
     }
 }

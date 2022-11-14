@@ -5,9 +5,11 @@ import com.example.transaction.dto.TransferDTO;
 import com.example.transaction.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountNotFoundException;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -17,20 +19,22 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    public List<Account> getAllRecords() {
+    public Iterable<Account> getAllRecords() {
         return accountRepository.findAll();
     }
 
-    public Account getById(long id) {
-        return accountRepository.findAccountById(id);
+    public Optional<Account> getById(long id) {
+        return accountRepository.getById(id);
     }
 
     @Transactional
-    public List<Account> transferMoney(TransferDTO transfer) {
+    public Iterable<Account> transferMoney(TransferDTO transfer) throws AccountNotFoundException {
         BigDecimal amt = transfer.getTransferAmount();
-        Account srcAcc = getById(transfer.getSourceAccountId());
-        Account dstAcc = getById(transfer.getDestAccountId());
+        Optional<Account> srcAccOpt = getById(transfer.getSourceAccountId());
+        Optional<Account> dstAccOpt = getById(transfer.getDestAccountId());
 
+        Account srcAcc = srcAccOpt.orElseThrow(AccountNotFoundException::new);
+        Account dstAcc = dstAccOpt.orElseThrow(AccountNotFoundException::new);
         BigDecimal srcAccNewAmount = srcAcc.getAmount_amt().subtract(amt);
         BigDecimal dstAccNewAmount = dstAcc.getAmount_amt().add(amt);
         if (srcAccNewAmount.compareTo(BigDecimal.ZERO) < 0 || dstAccNewAmount.compareTo(BigDecimal.ZERO) < 0) {
@@ -45,22 +49,7 @@ public class AccountService {
         return accounts;
     }
 
-    @Transactional
-    @Deprecated
-    public List<Account> oldtransferMoney(TransferDTO transfer) {
-        BigDecimal amt = transfer.getTransferAmount();
-        Account srcAcc = accountRepository.getById(transfer.getSourceAccountId());
-        Account dstAcc = accountRepository.getById(transfer.getDestAccountId());
-
-        BigDecimal srcAccNewAmount = srcAcc.getAmount_amt().subtract(amt);
-        BigDecimal dstAccNewAmount = dstAcc.getAmount_amt().add(amt);
-        accountRepository.changeAmount(transfer.getSourceAccountId(), srcAccNewAmount);
-        accountRepository.changeAmount(transfer.getDestAccountId(), dstAccNewAmount);
-
-        Account newSrcAcc = accountRepository.getById(transfer.getSourceAccountId());
-        Account newDstAcc = accountRepository.getById(transfer.getDestAccountId());
-        return List.of(newSrcAcc, newDstAcc);
+    public Account save(Account account) {
+        return accountRepository.save(account);
     }
-
-
 }
