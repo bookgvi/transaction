@@ -13,7 +13,8 @@ import java.util.Optional;
 public interface AccountRepository extends CrudRepository<Account, Long> {
     Iterable<Account> findAll();
 
-    @Query(value = "select * from account acc " +
+    @Query(value = "select acc.* " +
+            "from account acc " +
             "where 1 = 1 " +
             "and acc.id = :id", nativeQuery = true)
     Optional<Account> getById(long id);

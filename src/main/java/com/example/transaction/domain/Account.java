@@ -1,9 +1,14 @@
 package com.example.transaction.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -13,9 +18,9 @@ public class Account {
     private String lastname;
     private String middlename;
     private BigDecimal amount_amt;
-
-    @Enumerated(EnumType.STRING)
-    private Currency amount_cur;
+    @ManyToOne
+    @JoinColumn(name = "currency_id", nullable = false)
+    private Currency currency;
 
 
     public String getLastname() {
@@ -46,19 +51,19 @@ public class Account {
         return id;
     }
 
-    public Currency getAmount_cur() {
-        return amount_cur;
-    }
-
-    public void setAmount_cur(Currency amount_cur) {
-        this.amount_cur = amount_cur;
-    }
-
     public String getFirstname() {
         return firstname;
     }
 
     public void setFirstname(String firstname) {
         this.firstname = firstname;
+    }
+
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
     }
 }

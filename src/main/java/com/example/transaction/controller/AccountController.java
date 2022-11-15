@@ -36,7 +36,7 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<Iterable<Account>> getAccounts() {
         Iterable<Account> accounts = accountService.getAllRecords();
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(accounts);
+        return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
 
     @GetMapping("/{id}")
