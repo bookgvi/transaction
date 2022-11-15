@@ -6,6 +6,7 @@ import com.example.transaction.domain.SbpRegisterResponse;
 import com.example.transaction.dto.TransferDTO;
 import com.example.transaction.dto.sbp_alfa.SbpRegisterRequest;
 import com.example.transaction.service.AccountService;
+import com.example.transaction.service.CurrencyService;
 import com.example.transaction.service.RestClient;
 import com.example.transaction.service.SbpResponseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,11 +27,13 @@ public class AccountController {
     private final AccountService accountService;
     private final RestClient restClient;
     private final SbpResponseService sbpResponseService;
+    private final CurrencyService currencyService;
 
-    public AccountController(AccountService accountService, RestClient restClient, SbpResponseService sbpResponseService) {
+    public AccountController(AccountService accountService, RestClient restClient, SbpResponseService sbpResponseService, CurrencyService currencyService) {
         this.accountService = accountService;
         this.restClient = restClient;
         this.sbpResponseService = sbpResponseService;
+        this.currencyService = currencyService;
     }
 
     @GetMapping
@@ -68,6 +71,12 @@ public class AccountController {
     @PostMapping("/add")
     public Account addAccount(@RequestBody Account account) {
         return accountService.save(account);
+    }
+
+    @GetMapping("/currency")
+    public ResponseEntity<Iterable<?>> getAccountsWithCurrency(@RequestParam long id) throws ResourceNotFoundException {
+        Iterable<?> accounts = currencyService.getAccountsByCurrency(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(accounts);
     }
 
     private Optional<Account> validateAndGetAccountById(long id) throws ResourceNotFoundException {
