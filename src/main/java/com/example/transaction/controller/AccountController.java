@@ -1,5 +1,6 @@
 package com.example.transaction.controller;
 
+import com.example.transaction.Exceptions.ResourceNotFoundException;
 import com.example.transaction.domain.Account;
 import com.example.transaction.domain.SbpRegisterResponse;
 import com.example.transaction.dto.TransferDTO;
@@ -39,9 +40,9 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<Account>> getAccountById(@PathVariable long id) {
-        Optional<Account> acc = accountService.getById(id);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(acc);
+    public ResponseEntity<?> getAccountById(@PathVariable long id) {
+        Optional<Account> acc = validateAndGetAccountById(id);
+        return ResponseEntity.status(HttpStatus.OK).body(acc);
     }
 
     @PostMapping("/transfer")
@@ -67,5 +68,13 @@ public class AccountController {
     @PostMapping("/add")
     public Account addAccount(@RequestBody Account account) {
         return accountService.save(account);
+    }
+
+    private Optional<Account> validateAndGetAccountById(long id) throws ResourceNotFoundException {
+        Optional<Account> acc = accountService.getById(id);
+        if (acc.isEmpty()) {
+            throw new ResourceNotFoundException("Account with id " + id + " not found");
+        }
+        return acc;
     }
 }
