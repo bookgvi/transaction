@@ -2,6 +2,7 @@ package com.example.transaction.controller;
 
 import com.example.transaction.Exceptions.ResourceNotFoundException;
 import com.example.transaction.domain.Account;
+import com.example.transaction.domain.Currency;
 import com.example.transaction.domain.SbpRegisterResponse;
 import com.example.transaction.dto.TransferDTO;
 import com.example.transaction.dto.sbp_alfa.SbpRegisterRequest;
@@ -9,7 +10,10 @@ import com.example.transaction.service.AccountService;
 import com.example.transaction.service.CurrencyService;
 import com.example.transaction.service.RestClient;
 import com.example.transaction.service.SbpResponseService;
+import com.example.transaction.annotations.MyTransaction;
+import com.example.transaction.transactionQuestion.TestClass1;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -24,20 +28,21 @@ import java.util.logging.Logger;
 @RequestMapping("/account")
 public class AccountController {
     private final Logger logger = Logger.getLogger(AccountController.class.getName());
-    private final AccountService accountService;
-    private final RestClient restClient;
-    private final SbpResponseService sbpResponseService;
-    private final CurrencyService currencyService;
-
-    public AccountController(AccountService accountService, RestClient restClient, SbpResponseService sbpResponseService, CurrencyService currencyService) {
-        this.accountService = accountService;
-        this.restClient = restClient;
-        this.sbpResponseService = sbpResponseService;
-        this.currencyService = currencyService;
-    }
+    @Autowired
+    private AccountService accountService;
+    @Autowired
+    private RestClient restClient;
+    @Autowired
+    private SbpResponseService sbpResponseService;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private TestClass1 testClass;
 
     @GetMapping
+    @MyTransaction
     public ResponseEntity<Iterable<Account>> getAccounts() {
+        testClass.method1();
         Iterable<Account> accounts = accountService.getAllRecords();
         return ResponseEntity.status(HttpStatus.OK).body(accounts);
     }
@@ -73,8 +78,9 @@ public class AccountController {
         return accountService.save(account);
     }
 
-    @GetMapping("/currency")
-    public ResponseEntity<Iterable<?>> getAccountsWithCurrency(@RequestParam long id) throws ResourceNotFoundException {
+    @PostMapping("/currency")
+    public ResponseEntity<Iterable<?>> getAccountsWithCurrency(@RequestBody Currency currency) throws ResourceNotFoundException {
+        long id = currency.getId();
         Iterable<?> accounts = currencyService.getAccountsByCurrency(id);
         return ResponseEntity.status(HttpStatus.CREATED).body(accounts);
     }
